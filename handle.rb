@@ -3,21 +3,28 @@ require 'roo'
 
 
 
-book_in = Spreadsheet.open 'summary.xls'
+book_in = Spreadsheet.open ARGV[0]
 sheet_in = book_in.worksheet 0 #指定读取哪个sheet
+
 
 book_out = Spreadsheet::Workbook.new #创建一个新的输出book
 sheet_out = book_out.create_worksheet
 sheet_out.name = "zhangfana"
 
-
+other_row_format = Spreadsheet::Format.new :bottom => :thin,
+                                  :top => :thin,
+                                  :left => :thin,
+                                  :right => :thin,
+                                  :bottom_color => :black,
+                                  :top_color => :black,
+                                  :left_color => :black,
+                                  :right_color => :black
 
 i = 0
   sheet_in.each do |row|
     object_row = row
     if i == 0
       object_row[13] = "PO Amount (RMB)"#生成的新文件row名字变了
-
     end
     object_row.delete_at(10)
     object_row.delete_at(10)
@@ -26,12 +33,24 @@ i = 0
     ary.each do |item|
       sheet_out.row(i).push item
     end
+    sheet_out.row(i).default_format = other_row_format #设置其它row 默认格式
     i += 1
    
   end
+firet_row_format = Spreadsheet::Format.new :weight => :bold,
+                                  :pattern_fg_color => :lime,
+                                  :pattern => 1,
 
+                                  :bottom => :thin,
+                                  :top => :thin,
+                                  :left => :thin,
+                                  :right => :thin,
+                                  :bottom_color => :black,
+                                  :top_color => :black,
+                                  :left_color => :black,
+                                  :right_color => :black
 
+sheet_out.row(0).default_format = firet_row_format
 
-
-book_out.write "test_out.xls"
+book_out.write ARGV[1]
 
