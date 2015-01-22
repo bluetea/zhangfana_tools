@@ -56,7 +56,7 @@ firet_row_format = Spreadsheet::Format.new :weight => :bold,
                                   :right_color => :black
 
 sheet_out.row(0).default_format = firet_row_format
-
+print "报表转换程序 for zhanfana Version 0.1\n"
 book_out.write ARGV[1]
 
 end
