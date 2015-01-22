@@ -2,10 +2,13 @@ require "spreadsheet"
 require 'roo'
 
 
+begin
+  book_in = Spreadsheet.open ARGV[0]
+rescue => open_source_file_error
+  print "二货，你确认有这个文件吗\n"
+end
 
-book_in = Spreadsheet.open ARGV[0]
 sheet_in = book_in.worksheet 0 #指定读取哪个sheet
-
 
 book_out = Spreadsheet::Workbook.new #创建一个新的输出book
 sheet_out = book_out.create_worksheet
