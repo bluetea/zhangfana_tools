@@ -1,11 +1,13 @@
 require "spreadsheet"
-require 'roo'
 
+unless ARGV[0] || ARGV[1] 
+  print "使用方法：\n命令行下输入: ruby handle.rb input_file(源文件) output_file(目标文件)\n"
+else
 
 begin
   book_in = Spreadsheet.open ARGV[0]
 rescue => open_source_file_error
-  print "二货，你确认有这个文件吗\n"
+  print "妞，你确认有这个文件吗\n"
 end
 
 sheet_in = book_in.worksheet 0 #指定读取哪个sheet
@@ -56,4 +58,6 @@ firet_row_format = Spreadsheet::Format.new :weight => :bold,
 sheet_out.row(0).default_format = firet_row_format
 
 book_out.write ARGV[1]
+
+end
 
