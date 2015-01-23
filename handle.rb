@@ -2,13 +2,16 @@ require "spreadsheet"
 
 class HandleSheet
   def initialize(*args)
+    @pass_coherence_checked = nil
     @input = ARGV[0]
-    @output = ARGV[1]
+    @output = ARGV[1] + ".xls" unless ARGV[1] =~ /\.xls$/
     @book_in = nil
     @book_out = nil
     @sheet_in = nil
     @sheet_out_us = nil
     @sheet_out_rmb = nil
+    @sheet_name_rmb =nil
+    @sheet_name_us = nil
     @other_row_format = Spreadsheet::Format.new :bottom => :thin,
                                   :top => :thin,
                                   :left => :thin,
@@ -43,13 +46,31 @@ class HandleSheet
     begin
       @book_out = Spreadsheet::Workbook.new #创建一个新的输出book
     rescue => open_destination_file_error
-      print "大姐，无法生成目标表格文件，我也不晓得为啥"
+      print "大姐，无法生成目标表格文件，我也不晓得为啥!"
     end
   end
 
   def read_sheet(sheet_name_rmb, sheet_name_us) #指定读取数据源 哪个sheet
+    @sheet_name_rmb = sheet_name_rmb
+    @sheet_name_us = sheet_name_us
     @sheet_in_rmb = @book_in.worksheet sheet_name_rmb 
     @sheet_in_us = @book_in.worksheet sheet_name_us
+  end
+
+  def check__coherence_rmb
+    j = 2# 循环行数用的
+    @sheet_in_rmb.each 1 do |row|
+      row[15].class.to_s =~ /Formula/i ? row[15] = row[15].value : row[15] = row[15] 
+      #如果是Spread::Fomula类型就取它的value
+      check_sellout = (row[4] =~ /out/i) && (row[15] <= 0)
+      check_sellin = (row[4] =~ /in/i) && (row[15] >= 0)
+      unless check_sellout || check_sellin
+         puts "**注意数据源文件表:#{@sheet_name_rmb}的第#{j}行的价格正负不一致**"
+         @pass_coherence_checked = true
+      end
+       # break j == 2000
+      j += 1
+    end
   end
 
   def adjust_sheet_rmb
@@ -58,6 +79,7 @@ class HandleSheet
 
     i = 0
     @sheet_in_rmb.each do |row|
+     
       object_row = row
       if i == 0
         object_row[13] = "PO Amount (RMB)"#生成的新文件row名字变了
@@ -87,21 +109,51 @@ class HandleSheet
   end
 
   def print_version
-    print "报表转换程序 for zhanfana 支持us和rmb同时转换\nVersion 0.2\n"
+    print "报表转换程序 for zhanfana 支持人民币表和美金表同时转换！！！\nVersion 0.2\n\n"
   end
+
+  def check_choherence_all
+    open_file
+    read_sheet('NB', 'NA')
+    print_version
+    puts "正在检查正负匹配 >>>>"
+    check__coherence_rmb
+    puts "检测完毕 >>>>"
+  end
+
+  def conver_all
+    if @pass_coherence_checked == nil
+    puts "价格匹配检查已通过，正在生成新的文件 >>>>"
+    else
+      puts "!!请先在命令行下运行 ruby handle.rb input_file(源文件) 检测价格正负一致性\n 不会生成<<#{@output}>>文件，程序即将退出!!"
+      return 0
+    end
+    check_choherence_all
+    report.adjust_sheet_rmb
+    report.adjust_sheet_us
+    report.wirte_file
+    puts "<<#{output}>>文件已经生成"
+  end
+
 end
 
 
 unless ARGV[0] || ARGV[1] 
-  print "使用方法：\n命令行下输入: ruby handle.rb input_file(源文件) output_file(目标文件)\n"
+
 end
 
 report = HandleSheet.new
-report.open_file
-report.read_sheet('NB', 'NA')
-report.print_version
-report.adjust_sheet_rmb
-report.adjust_sheet_us
-report.wirte_file
+
+if !(ARGV[0] || ARGV[1])
+  print "使用方法：\n命令行下输入: ruby handle.rb input_file(源文件) output_file(目标文件)\n"
+  exit
+elsif ARGV[0]
+  report.check_choherence_all
+else
+  report.check_choherence_all
+  report.conver_all
+end
+
+    
 
 
