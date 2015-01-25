@@ -4,7 +4,7 @@ class HandleSheet
   def initialize(*args)
     @pass_coherence_checked = nil
     @input = ARGV[0]
-    @output = ARGV[1] + ".xls" unless ARGV[1] =~ /\.xls$/
+    @output = ARGV[1] + ".xls" unless ARGV[1] =~ /\.xls$/ if ARGV[1] != nil
     @book_in = nil
     @book_out = nil
     @sheet_in = nil
@@ -46,7 +46,7 @@ class HandleSheet
     begin
       @book_out = Spreadsheet::Workbook.new #创建一个新的输出book
     rescue => open_destination_file_error
-      print "大姐，无法生成目标表格文件，我也不晓得为啥!"
+      print "妞，无法生成目标表格文件，我也不晓得为啥!"
     end
   end
 
@@ -79,10 +79,9 @@ class HandleSheet
 
     i = 0
     @sheet_in_rmb.each do |row|
-     
       object_row = row
       if i == 0
-        object_row[13] = "PO Amount (RMB)"#生成的新文件row名字变了
+        object_row[13] = "PO Amount (RMB)"#原的row名字不对，生成对的row名字
       end
       object_row.delete_at(10)
       object_row.delete_at(10)
@@ -93,7 +92,6 @@ class HandleSheet
       end
       i += 1
       @sheet_out_rmb.row(i).default_format = @other_row_format #设置其它row 默认格式
-
     end
     @sheet_out_rmb.row(0).default_format = @firet_row_format #设置默认row的默认格式
   end
@@ -109,7 +107,7 @@ class HandleSheet
   end
 
   def print_version
-    print "报表转换程序 for zhanfana 支持人民币表和美金表同时转换！！！\nVersion 0.2\n\n"
+    print "just for zhanfana 表格转换工具----Version 0.3\n\n"
   end
 
   def check_choherence_all
@@ -122,36 +120,26 @@ class HandleSheet
   end
 
   def conver_all
-    if @pass_coherence_checked == nil
-    puts "价格匹配检查已通过，正在生成新的文件 >>>>"
-    else
-      puts "!!请先在命令行下运行 ruby handle.rb input_file(源文件) 检测价格正负一致性\n 不会生成<<#{@output}>>文件，程序即将退出!!"
-      return 0
-    end
-    check_choherence_all
-    report.adjust_sheet_rmb
-    report.adjust_sheet_us
-    report.wirte_file
-    puts "<<#{output}>>文件已经生成"
+    open_file
+    read_sheet('NB', 'NA')
+    print_version
+    puts "正在生成文件 >>>>"
+    adjust_sheet_rmb
+    adjust_sheet_us
+    wirte_file
+    puts "<<#{@output}>>文件已经生成!"
   end
-
-end
-
-
-unless ARGV[0] || ARGV[1] 
-
 end
 
 report = HandleSheet.new
 
 if !(ARGV[0] || ARGV[1])
-  print "使用方法：\n命令行下输入: ruby handle.rb input_file(源文件) output_file(目标文件)\n"
+  print "使用方法:命令行下输入: \n检查价格一致性: ruby handle.rb input_file.xls(源文件)\n根据数据源生成新表: ruby handle.rb input.xls output.xls\n"
   exit
-elsif ARGV[0]
-  report.check_choherence_all
-else
-  report.check_choherence_all
+elsif ARGV[0] && ARGV[1] #有输入和输出的时候，进行转换
   report.conver_all
+else
+  report.check_choherence_all#只有输入的时候进行检查数据源的格式一致性
 end
 
     
