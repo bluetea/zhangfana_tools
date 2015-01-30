@@ -60,10 +60,10 @@ class HandleSheet
   def check__coherence_rmb
     j = 2# 循环行数用的
     @sheet_in_rmb.each 1 do |row|
-      row[15].class.to_s =~ /Formula/i ? row[15] = row[15].value : row[15] = row[15] 
+      row[16].class.to_s =~ /Formula/i ? row[16] = row[16].value : row[16] = row[16] 
       #如果是Spread::Fomula类型就取它的value
-      check_sellout = (row[4] =~ /out/i) && (row[15] <= 0)
-      check_sellin = (row[4] =~ /in/i) && (row[15] >= 0)
+      check_sellout = (row[4] =~ /out/i) && (row[16] <= 0)
+      check_sellin = (row[4] =~ /in/i) && (row[16] >= 0)
       unless check_sellout || check_sellin
          puts "**注意数据源文件表:#{@sheet_name_rmb}的第#{j}行的价格正负不一致**"
          @pass_coherence_checked = true
